@@ -33,8 +33,6 @@ export class App extends Component {
     } finally {
       this.setState({ showLoad: false });
     }
-
-    setTimeout(() => console.log(this.state), 0);
   };
 
   handleLoadMore = async e => {
