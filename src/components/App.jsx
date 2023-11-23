@@ -26,8 +26,13 @@ export class App extends Component {
     const page = this.state.page;
 
     try {
-      const imags = await fetchImages({ q, page });
-      this.setState({ items: imags.hits, showBtn: true, querry: q, page: 2 });
+      const imags = await fetchImages({ q });
+      this.setState(prevState => ({
+        items: imags.hits,
+        showBtn: true,
+        querry: q,
+        page: prevState.page + 1,
+      }));
     } catch (err) {
       console.log(err);
     } finally {
