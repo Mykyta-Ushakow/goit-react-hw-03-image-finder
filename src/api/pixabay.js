@@ -10,10 +10,10 @@ export async function fetchImages({ q, page }) {
     orientation: 'hprizontal',
     safesearch: true,
     page,
-    per_page: 12,
+    per_page: 15,
   });
 
   const { data } = await axios(`${BASE_URL}?${URL_PARAMS}`);
 
-  return data;
+  return await data;
 }

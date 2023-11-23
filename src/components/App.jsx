@@ -1,21 +1,88 @@
 import { Component } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
+import { AppDiv } from './App.styled';
+import { ImageGallery } from './ImageGallery/ImageGallery';
+import { fetchImages } from 'api/pixabay';
+import { Button } from './Button/Button';
+import Loader from './Loader/Loader';
+import Modal from './Modal/Modal';
 
 export class App extends Component {
+  state = {
+    items: [],
+    querry: '',
+    page: 1,
+    selectedImage: '',
+    showBtn: false,
+    showLoad: false,
+    showModal: false,
+  };
+
+  handleSearch = async e => {
+    e.preventDefault();
+    this.setState({ showLoad: true, showBtn: false, page: 1 });
+
+    const q = e.target.elements.input.value;
+    const page = this.state.page;
+
+    try {
+      const imags = await fetchImages({ q, page });
+      this.setState({ items: imags.hits, showBtn: true, querry: q, page: 2 });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      this.setState({ showLoad: false });
+    }
+
+    setTimeout(() => console.log(this.state), 0);
+  };
+
+  handleLoadMore = async e => {
+    e.preventDefault();
+    this.setState({ showLoad: true, showBtn: false });
+
+    try {
+      const imags = await fetchImages({
+        q: this.state.querry,
+        page: this.state.page,
+      });
+
+      this.setState(prev => ({
+        page: prev.page + 1,
+        items: [...prev.items, ...imags.hits],
+      }));
+    } catch (err) {
+      console.log(err);
+    } finally {
+      this.setState({ showLoad: false, showBtn: true });
+    }
+  };
+
+  handleOpenModal = imageUrl => {
+    this.setState({ showModal: true, selectedImage: imageUrl });
+  };
+
+  handleCloseModal = () => {
+    this.setState({ showModal: false, selectedImage: '' });
+  };
+
   render() {
     return (
-      <div
-        style={{
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontSize: 40,
-          color: '#010101',
-        }}
-      >
-        <Searchbar />
-      </div>
+      <AppDiv>
+        <Searchbar onSubmit={this.handleSearch} />
+        <ImageGallery
+          items={this.state.items}
+          onOpenModal={this.handleOpenModal}
+        />
+        {this.state.showLoad && <Loader />}
+        {this.state.showBtn && <Button onClick={this.handleLoadMore} />}
+        {this.state.showModal && (
+          <Modal
+            imageUrl={this.state.selectedImage}
+            onClose={this.handleCloseModal}
+          />
+        )}
+      </AppDiv>
     );
   }
 }
