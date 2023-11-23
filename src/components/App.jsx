@@ -23,7 +23,6 @@ export class App extends Component {
     this.setState({ showLoad: true, showBtn: false, page: 1 });
 
     const q = e.target.elements.input.value;
-    const page = this.state.page;
 
     try {
       const imags = await fetchImages({ q });
