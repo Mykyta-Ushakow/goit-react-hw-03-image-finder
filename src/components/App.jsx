@@ -28,10 +28,13 @@ export class App extends Component {
       const imags = await fetchImages({ q });
       this.setState(prevState => ({
         items: imags.hits,
-        showBtn: true,
         querry: q,
         page: prevState.page + 1,
       }));
+
+      if (imags.hits.length >= 15) {
+        this.setState({ showBtn: true });
+      }
     } catch (err) {
       console.log(err);
     } finally {
