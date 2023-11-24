@@ -18,6 +18,24 @@ export class App extends Component {
     showModal: false,
   };
 
+  componentDidMount() {
+    this.setState({ showLoad: true });
+
+    fetchImages({ q: this.state.querry, page: this.state.page })
+      .then(resp => {
+        this.setState(prevState => ({
+          items: resp.hits,
+          page: prevState.page + 1,
+        }));
+
+        if (resp.hits.length >= 15) {
+          this.setState({ showBtn: true });
+        }
+      })
+      .catch(console.log)
+      .finally(() => this.setState({ showLoad: false }));
+  }
+
   handleSearch = async e => {
     e.preventDefault();
     this.setState({ showLoad: true, showBtn: false, page: 1 });
