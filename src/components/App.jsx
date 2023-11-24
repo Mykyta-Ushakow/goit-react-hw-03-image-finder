@@ -18,41 +18,28 @@ export class App extends Component {
     showModal: false,
   };
 
-  componentDidMount() {
-    this.setState({ showLoad: true });
-
-    fetchImages({ q: this.state.querry, page: this.state.page })
-      .then(resp => {
-        this.setState(prevState => ({
-          items: resp.hits,
-          page: prevState.page + 1,
-        }));
-
-        if (resp.hits.length >= 15) {
-          this.setState({ showBtn: true });
-        }
-      })
-      .catch(console.log)
-      .finally(() => this.setState({ showLoad: false }));
+  componentDidUpdate(_, prevState) {
+    if (
+      (this.state.querry !== prevState.querry && this.state.page === 1) ||
+      (this.state.querry === prevState.querry &&
+        this.state.page !== prevState.page)
+    ) {
+      if (this.state.page === 1) {
+        this.searchService();
+      } else {
+        this.loadMoreService();
+      }
+    }
   }
 
-  handleSearch = async e => {
-    e.preventDefault();
-    this.setState({ showLoad: true, showBtn: false, page: 1 });
+  searchService = async () => {
+    this.setState({ showLoad: true, showBtn: false });
 
-    const q = e.target.elements.input.value;
+    const q = this.state.querry;
 
     try {
       const imags = await fetchImages({ q });
-      this.setState(prevState => ({
-        items: imags.hits,
-        querry: q,
-        page: prevState.page + 1,
-      }));
-
-      if (imags.hits.length >= 15) {
-        this.setState({ showBtn: true });
-      }
+      this.setState({ items: imags.hits, showBtn: imags.hits.length >= 15 });
     } catch (err) {
       console.log(err);
     } finally {
@@ -60,25 +47,37 @@ export class App extends Component {
     }
   };
 
-  handleLoadMore = async e => {
+  handleSearch = e => {
     e.preventDefault();
-    this.setState({ showLoad: true, showBtn: false });
 
+    const q = e.target.elements.input.value;
+
+    this.setState({
+      querry: q,
+      page: 1,
+    });
+  };
+
+  loadMoreService = async () => {
+    this.setState({ showLoad: true, showBtn: false });
     try {
       const imags = await fetchImages({
         q: this.state.querry,
         page: this.state.page,
       });
-
       this.setState(prev => ({
-        page: prev.page + 1,
         items: [...prev.items, ...imags.hits],
+        showBtn: imags.hits.length >= 15,
       }));
     } catch (err) {
-      console.log(err);
+      console.log('Error in loadMoreService:', err);
     } finally {
-      this.setState({ showLoad: false, showBtn: true });
+      this.setState({ showLoad: false });
     }
+  };
+
+  handleLoadMore = () => {
+    this.setState(prev => ({ page: prev.page + 1 }));
   };
 
   handleOpenModal = imageUrl => {
